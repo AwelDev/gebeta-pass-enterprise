@@ -1,1 +1,56 @@
-const { getDB } = require('./connection'); const bcrypt = require('bcryptjs'); const initSchema = () => { const db = getDB(); db.exec(`CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, full_name TEXT, photo_path TEXT, category TEXT DEFAULT 'Eligible', sex TEXT DEFAULT 'M', department TEXT DEFAULT '')`); db.exec(`CREATE TABLE IF NOT EXISTS meal_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id TEXT, meal_type TEXT, session_number INTEGER, session_name TEXT, status TEXT, scan_method TEXT DEFAULT 'scanner', timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)`); db.exec(`CREATE TABLE IF NOT EXISTS students_backup (id TEXT PRIMARY KEY, full_name TEXT, photo_path TEXT, category TEXT, sex TEXT, department TEXT)`); db.exec(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`); db.exec(`CREATE TABLE IF NOT EXISTS departments (name TEXT PRIMARY KEY, allowed INTEGER DEFAULT 1)`); const defaults = ["Medicine", "Pharmacy", "Nursing", "Medical Laboratory", "Midwifery", "Public Health Officer"]; const insertDept = db.prepare("INSERT OR IGNORE INTO departments (name, allowed) VALUES (?, 1)"); defaults.forEach(d => insertDept.run(d)); const check = db.prepare("SELECT * FROM settings WHERE key = 'admin_pass'").get(); if (!check) { const adminHash = bcrypt.hashSync('admin', 10); const userHash = bcrypt.hashSync('user', 10); const insert = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)"); insert.run('admin_pass', adminHash); insert.run('user_pass', userHash); insert.run('current_session', JSON.stringify(null)); insert.run('cycle_start_date', new Date().toISOString()); insert.run('sys_install_date', new Date().toISOString()); insert.run('sys_last_run', new Date().toISOString()); } db.exec("CREATE INDEX IF NOT EXISTS idx_logs_student_date ON meal_logs (student_id, meal_type, session_number, timestamp)"); db.exec("CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON meal_logs (timestamp)"); }; module.exports = { initSchema };
+const { getDB } = require("./connection");
+const bcrypt = require("bcryptjs");
+const initSchema = () => {
+  const db = getDB();
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS students (id TEXT PRIMARY KEY, full_name TEXT, photo_path TEXT, category TEXT DEFAULT 'Eligible', sex TEXT DEFAULT 'M', department TEXT DEFAULT '')`,
+  );
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS meal_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, student_id TEXT, meal_type TEXT, session_number INTEGER, session_name TEXT, status TEXT, scan_method TEXT DEFAULT 'scanner', timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)`,
+  );
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS students_backup (id TEXT PRIMARY KEY, full_name TEXT, photo_path TEXT, category TEXT, sex TEXT, department TEXT)`,
+  );
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)`,
+  );
+  db.exec(
+    `CREATE TABLE IF NOT EXISTS departments (name TEXT PRIMARY KEY, allowed INTEGER DEFAULT 1)`,
+  );
+  const defaults = [
+    "Medicine",
+    "Pharmacy",
+    "Nursing",
+    "Medical Laboratory",
+    "Midwifery",
+    "Public Health Officer",
+  ];
+  const insertDept = db.prepare(
+    "INSERT OR IGNORE INTO departments (name, allowed) VALUES (?, 1)",
+  );
+  defaults.forEach((d) => insertDept.run(d));
+  const check = db
+    .prepare("SELECT * FROM settings WHERE key = 'admin_pass'")
+    .get();
+  if (!check) {
+    const adminHash = bcrypt.hashSync("admin", 10);
+    const userHash = bcrypt.hashSync("user", 10);
+    const insert = db.prepare(
+      "INSERT INTO settings (key, value) VALUES (?, ?)",
+    );
+    insert.run("admin_pass", adminHash);
+    insert.run("user_pass", userHash);
+    insert.run("current_session", JSON.stringify(null));
+    insert.run("cycle_start_date", new Date().toISOString());
+    insert.run("sys_install_date", new Date().toISOString());
+    insert.run("sys_last_run", new Date().toISOString());
+    insert.run("admin_phone", "0935559266");
+  }
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_logs_student_date ON meal_logs (student_id, meal_type, session_number, timestamp)",
+  );
+  db.exec(
+    "CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON meal_logs (timestamp)",
+  );
+};
+module.exports = { initSchema };
