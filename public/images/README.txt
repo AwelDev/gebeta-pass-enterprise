@@ -1,0 +1,1 @@
+REQUIRED IMAGES: 1. logo.png 2. breakfast.png 3. lunch.png 4. dinner.png 5. snack.png 6. avatar_male.png 7. avatar_female.png 8. contact_photo.jpg
